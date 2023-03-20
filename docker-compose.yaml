@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_DB=postgres
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+
+  odoo:
+    depends_on:
+      - db
+    image: odoo:14
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./config:/etc/odoo
+    environment:
+      - PGUSER=odoo
+      - PGHOST=db
+      - PGPORT=5432
+      - PGDATABASE=postgres
+      - PGPASSWORD=odoo
+
+  flask:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - odoo
+    environment:
+      - DATABASE_URI=postgresql://odoo:odoo@db:5432/postgres
+
+volumes:
+  odoo-data:
+  odoo-db-data:
